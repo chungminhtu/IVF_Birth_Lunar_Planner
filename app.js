@@ -157,6 +157,9 @@ function renderCalendar() {
         const dayElement = document.createElement('div');
         const weekday = solarJsDate.getDay(); // 0 = Sunday, 6 = Saturday
         
+        // Set base class
+        dayElement.className = 'calendar-day';
+        
         // Add weekend classes for all days
         if (weekday === 6) {
           dayElement.classList.add('weekend-saturday');
@@ -165,9 +168,8 @@ function renderCalendar() {
         }
         
         if (!isCurrentLunarMonth) {
-          dayElement.className = 'calendar-day other-month';
+          dayElement.classList.add('other-month');
         } else {
-          dayElement.className = 'calendar-day';
           dayElement.dataset.year = currentYear;
           dayElement.dataset.month = currentMonth;
           dayElement.dataset.day = lunarDate.getDay();

@@ -280,6 +280,13 @@ button:focus {
   background: #fff8f0;
 }
 
+.calendar-day.holiday.weekend-saturday,
+.calendar-day.holiday.weekend-sunday {
+  background: linear-gradient(135deg, #e39ac7, #d685b8);
+  color: #4a0e4e;
+  border: 1px solid #c77dff;
+}
+
 .day-info {
   display: flex;
   flex-direction: column;
@@ -380,5 +387,5 @@ button:focus {
 
 .legend-color.today {
   border: 2px solid var(--accent);
-  background: white;
+  background: #fff8f0;
 }
