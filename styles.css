@@ -1,9 +1,10 @@
 :root {
-  --bg: #f7f8fc;
+  --bg: #f0f2f8;
   --card: #fff;
-  --accent: #5b7fff;
-  --text: #222;
-  --muted: #666;
+  --accent: #4f46e5;
+  --accent-bright: #6366f1;
+  --text: #1e293b;
+  --muted: #64748b;
 }
 
 * {
@@ -13,7 +14,7 @@
 }
 
 body {
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-family: "Lexend Deca", sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -52,20 +53,23 @@ button {
 
 button:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(91, 123, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
 }
 
 .btn {
-  background: var(--accent);
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: #fff;
   border: none;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.25s;
+  transition: all 0.25s;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .btn:hover {
-  background: #3f66ff;
+  background: linear-gradient(135deg, #818cf8, #6366f1);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  transform: translateY(-1px);
 }
 
 .btn:disabled {
@@ -74,11 +78,12 @@ button:focus {
 }
 
 .result {
-  background: #eef3ff;
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
   padding: 16px;
   border-radius: 10px;
   margin-top: 18px;
   line-height: 1.6;
+  border: 2px solid #c7d2fe;
 }
 
 .muted {
@@ -87,12 +92,12 @@ button:focus {
 }
 
 .info-section {
-  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-  border: 1px solid rgba(91, 123, 255, 0.2);
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  border: 2px solid #c7d2fe;
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(91, 123, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
 }
 
 .info-section h4 {
@@ -121,8 +126,8 @@ button:focus {
   background: var(--card);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(91, 123, 255, 0.1);
+  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.12);
+  border: 2px solid #e0e7ff;
 }
 
 .calendar-header {
@@ -162,7 +167,7 @@ button:focus {
 }
 
 .nav-btn {
-  background: linear-gradient(135deg, var(--accent), #4a7bff);
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: white;
   border: none;
   border-radius: 50%;
@@ -174,13 +179,13 @@ button:focus {
   justify-content: center;
   font-size: 18px;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(91, 123, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 .nav-btn:hover {
-  background: linear-gradient(135deg, #4a7bff, var(--accent));
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(91, 123, 255, 0.4);
+  background: linear-gradient(135deg, #818cf8, #6366f1);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
 }
 
 .calendar-grid {
@@ -192,13 +197,16 @@ button:focus {
 
 .day-header {
   text-align: center;
-  font-weight: 600;
-  color: var(--muted);
+  font-weight: 700;
+  color: #475569;
   padding: 12px 8px;
-  font-size: 14px;
-  background: rgba(91, 123, 255, 0.05);
+  font-size: 13px;
+  background: #f8fafc;
   border-radius: 8px;
   margin-bottom: 4px;
+  border: 1px solid #e2e8f0;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .calendar-days {
@@ -220,45 +228,50 @@ button:focus {
   position: relative;
   font-size: 16px;
   min-height: 70px;
-  background: #fafbfc;
-  border: 1px solid rgba(91, 123, 255, 0.1);
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
 }
 
 .calendar-day:hover {
-  background: rgba(91, 123, 255, 0.08);
+  background: #f1f5f9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(91, 123, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+  border-color: #c7d2fe;
 }
 
 .calendar-day.selected {
-  background: linear-gradient(135deg, var(--accent), #4a7bff);
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(91, 123, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
   border: none;
 }
 
 .calendar-day.holiday {
-  background: linear-gradient(135deg, #e39ac7, #d685b8);
-  color: #4a0e4e;
+  background: linear-gradient(135deg, #f472b6, #ec4899);
+  color: #831843;
   font-weight: 700;
-  border: 1px solid #c77dff;
+  border: 2px solid #f43f5e;
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.2);
 }
 
 .calendar-day.holiday.selected {
-  background: linear-gradient(135deg, #c77dff, #a855f7);
+  background: linear-gradient(135deg, #ec4899, #db2777);
   color: white;
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
 }
 
 .calendar-day.today {
-  border: 2px solid var(--accent);
-  background: #fff8f0;
+  border: 3px solid #f59e0b;
+  background: #fef3c7;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
 }
 
 .calendar-day.today.selected {
-  background: linear-gradient(135deg, var(--accent), #4a7bff);
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: white;
-  border: 2px solid #fff;
+  border: 3px solid #fff;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
 }
 
 .calendar-day.other-month {
@@ -269,11 +282,11 @@ button:focus {
 }
 
 .calendar-day.other-month.weekend-saturday {
-  background: rgba(232, 244, 248, 0.6);
+  background: rgba(240, 253, 244, 0.5);
 }
 
 .calendar-day.other-month.weekend-sunday {
-  background: rgba(254, 240, 245, 0.6);
+  background: rgba(240, 253, 244, 0.5);
 }
 
 .calendar-day.other-month:hover {
@@ -284,29 +297,35 @@ button:focus {
 }
 
 .calendar-day.weekend-saturday {
-  background: #e8f4f8;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
 }
 
 .calendar-day.weekend-sunday {
-  background: #fef0f5;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
 }
 
 .calendar-day.weekend-saturday.selected,
 .calendar-day.weekend-sunday.selected {
-  background: linear-gradient(135deg, var(--accent), #4a7bff);
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: white;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
 }
 
 .calendar-day.weekend-saturday.today,
 .calendar-day.weekend-sunday.today {
-  background: #fff8f0;
+  background: #fef3c7;
+  border: 3px solid #f59e0b;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
 }
 
 .calendar-day.holiday.weekend-saturday,
 .calendar-day.holiday.weekend-sunday {
-  background: linear-gradient(135deg, #e39ac7, #d685b8);
-  color: #4a0e4e;
-  border: 1px solid #c77dff;
+  background: linear-gradient(135deg, #f472b6, #ec4899);
+  color: #831843;
+  border: 2px solid #f43f5e;
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.2);
 }
 
 .day-info {
@@ -401,15 +420,151 @@ button:focus {
 }
 
 .legend-color.holiday {
-  background: linear-gradient(135deg, #e39ac7, #d685b8);
-  border: 1px solid #c77dff;
+  background: linear-gradient(135deg, #f472b6, #ec4899);
+  border: 2px solid #f43f5e;
 }
 
 .legend-color.selected {
-  background: linear-gradient(135deg, var(--accent), #4a7bff);
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
 }
 
 .legend-color.today {
-  border: 2px solid var(--accent);
-  background: #fff8f0;
+  border: 3px solid #f59e0b;
+  background: #fef3c7;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .card {
+    padding: clamp(12px, 4vw, 20px);
+  }
+
+  h1 {
+    font-size: clamp(18px, 5vw, 24px);
+  }
+
+  .calendar-container {
+    padding: 12px;
+  }
+
+  .calendar-header h3 {
+    font-size: 14px;
+  }
+
+  .nav-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .calendar-grid {
+    gap: 2px;
+  }
+
+  .day-header {
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+
+  .calendar-day {
+    min-height: 50px;
+    padding: 4px 2px;
+    font-size: 12px;
+  }
+
+  .day-number {
+    font-size: 14px;
+  }
+
+  .lunar-number {
+    font-size: 9px;
+  }
+
+  .holiday-name {
+    font-size: 7px;
+    padding: 2px 4px;
+    bottom: 4px;
+  }
+
+  .calendar-info {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .legend {
+    gap: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .legend-item {
+    font-size: 12px;
+  }
+
+  .legend-item.calendar-mode-toggle {
+    margin-left: 0;
+    margin-top: 8px;
+    width: 100%;
+  }
+
+  .legend-item.calendar-mode-toggle label {
+    font-size: 12px;
+  }
+
+  .info-section {
+    padding: 12px;
+  }
+
+  .info-section h4 {
+    font-size: 14px;
+  }
+
+  .info-section p {
+    font-size: 12px;
+  }
+
+  .btn {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .result {
+    padding: 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-day {
+    min-height: 45px;
+    padding: 3px 1px;
+    font-size: 11px;
+  }
+
+  .day-number {
+    font-size: 13px;
+  }
+
+  .lunar-number {
+    font-size: 8px;
+  }
+
+  .day-header {
+    padding: 6px 2px;
+    font-size: 10px;
+  }
+
+  .calendar-header h3 {
+    font-size: 12px;
+  }
+
+  .nav-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
 }
