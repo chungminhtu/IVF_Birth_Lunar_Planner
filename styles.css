@@ -132,6 +132,31 @@ button:focus {
   margin-bottom: 20px;
 }
 
+.calendar-mode-toggle {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(91, 123, 255, 0.05);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.calendar-mode-toggle label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.calendar-mode-toggle input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+
 .calendar-header h3 {
   font-size: 18px;
   font-weight: 600;

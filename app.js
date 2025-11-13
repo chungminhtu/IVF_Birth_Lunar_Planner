@@ -2,6 +2,7 @@
 let currentYear = 2026;
 let currentMonth = 1;
 let selectedDate = null;
+let solarMainMode = false; // false = lunar main, true = solar main
 
 // DOM elements
 const resultDiv = document.getElementById('result');
@@ -10,6 +11,7 @@ const calendarDays = document.getElementById('calendarDays');
 const calendarTitle = document.getElementById('calendarTitle');
 const prevMonthBtn = document.getElementById('prevMonth');
 const nextMonthBtn = document.getElementById('nextMonth');
+const solarMainCheckbox = document.getElementById('solarMainMode');
 
 // Vietnamese holidays (lunar calendar dates)
 const vietnameseHolidays = {
@@ -98,29 +100,34 @@ function formatDatePair(solarJsDate) {
 // Render calendar
 function renderCalendar() {
   calendarDays.innerHTML = '';
-  calendarTitle.textContent = `Tháng ${currentMonth}, Năm ${currentYear} (Âm lịch)`;
-
+  
   try {
     if (!window.dayjs) {
       throw new Error('Calendar library (dayjs) not loaded');
     }
 
     const dayjs = window.dayjs;
-    const firstLunarDay = Lunar.fromYmd(currentYear, currentMonth, 1);
-    const firstSolarDate = firstLunarDay.getSolar();
-    const lastLunarDay = getLastLunarDay(currentYear, currentMonth);
-    const lastSolarDate = lastLunarDay.getSolar();
-
-    const startSolarJsDate = new Date(
-      firstSolarDate.getYear(),
-      firstSolarDate.getMonth() - 1,
-      firstSolarDate.getDay()
-    );
-    const endSolarJsDate = new Date(
-      lastSolarDate.getYear(),
-      lastSolarDate.getMonth() - 1,
-      lastSolarDate.getDay()
-    );
+    let startSolarJsDate, endSolarJsDate;
+    
+    if (solarMainMode) {
+      // Solar main mode: show solar month
+      const solarYear = currentYear;
+      const solarMonth = currentMonth - 1; // JavaScript months are 0-indexed
+      const firstDay = new Date(solarYear, solarMonth, 1);
+      const lastDay = new Date(solarYear, solarMonth + 1, 0);
+      startSolarJsDate = firstDay;
+      endSolarJsDate = lastDay;
+      calendarTitle.textContent = `Tháng ${currentMonth}, Năm ${currentYear} (Dương lịch)`;
+    } else {
+      // Lunar main mode: show lunar month
+      const firstLunarDay = Lunar.fromYmd(currentYear, currentMonth, 1);
+      const firstSolarDate = firstLunarDay.getSolar();
+      const lastLunarDay = getLastLunarDay(currentYear, currentMonth);
+      const lastSolarDate = lastLunarDay.getSolar();
+      startSolarJsDate = new Date(firstSolarDate.getYear(), firstSolarDate.getMonth() - 1, firstSolarDate.getDay());
+      endSolarJsDate = new Date(lastSolarDate.getYear(), lastSolarDate.getMonth() - 1, lastSolarDate.getDay());
+      calendarTitle.textContent = `Tháng ${currentMonth}, Năm ${currentYear} (Âm lịch)`;
+    }
 
     const startSolarDate = dayjs(startSolarJsDate);
     const endSolarDate = dayjs(endSolarJsDate);
@@ -152,7 +159,14 @@ function renderCalendar() {
         const solarDate = Solar.fromYmd(dayData.year, dayData.month + 1, dayData.day);
         const lunarDate = solarDate.getLunar();
         const holiday = getVietnameseHoliday(solarDate);
-        const isCurrentLunarMonth = lunarDate.getMonth() === currentMonth && lunarDate.getYear() === currentYear;
+        
+        // Determine if this day is in current month based on mode
+        let isCurrentMonth;
+        if (solarMainMode) {
+          isCurrentMonth = dayData.month === currentMonth - 1 && dayData.year === currentYear;
+        } else {
+          isCurrentMonth = lunarDate.getMonth() === currentMonth && lunarDate.getYear() === currentYear;
+        }
 
         const dayElement = document.createElement('div');
         const weekday = solarJsDate.getDay(); // 0 = Sunday, 6 = Saturday
@@ -167,17 +181,34 @@ function renderCalendar() {
           dayElement.classList.add('weekend-sunday');
         }
         
-        if (!isCurrentLunarMonth) {
+        if (!isCurrentMonth) {
           dayElement.classList.add('other-month');
         } else {
-          dayElement.dataset.year = currentYear;
-          dayElement.dataset.month = currentMonth;
-          dayElement.dataset.day = lunarDate.getDay();
+          if (solarMainMode) {
+            dayElement.dataset.year = currentYear;
+            dayElement.dataset.month = currentMonth;
+            dayElement.dataset.day = solarJsDate.getDate();
+          } else {
+            dayElement.dataset.year = currentYear;
+            dayElement.dataset.month = currentMonth;
+            dayElement.dataset.day = lunarDate.getDay();
+          }
 
-          if (selectedDate && selectedDate.year === currentYear &&
-              selectedDate.month === currentMonth &&
-              selectedDate.day === lunarDate.getDay()) {
-            dayElement.classList.add('selected');
+          // Check if selected (works for both modes)
+          if (selectedDate) {
+            let isSelected = false;
+            if (solarMainMode) {
+              isSelected = selectedDate.year === currentYear &&
+                          selectedDate.month === currentMonth &&
+                          selectedDate.day === solarJsDate.getDate();
+            } else {
+              isSelected = selectedDate.year === currentYear &&
+                          selectedDate.month === currentMonth &&
+                          selectedDate.day === lunarDate.getDay();
+            }
+            if (isSelected) {
+              dayElement.classList.add('selected');
+            }
           }
 
           if (holiday) {
@@ -192,17 +223,31 @@ function renderCalendar() {
           }
         }
 
+        // Display format based on mode
+        let mainNumber, secondaryNumber;
+        if (solarMainMode) {
+          mainNumber = solarJsDate.getDate();
+          secondaryNumber = `${lunarDate.getDay()} (Âm)`;
+        } else {
+          mainNumber = lunarDate.getDay();
+          secondaryNumber = `${solarJsDate.getDate()}/${solarJsDate.getMonth() + 1} (Dương)`;
+        }
+        
         dayElement.innerHTML = `
           <div class="day-info">
-            <div class="day-number">${lunarDate.getDay()}</div>
-            <div class="lunar-number">${solarJsDate.getDate()}/${solarJsDate.getMonth() + 1} (Dương)</div>
+            <div class="day-number">${mainNumber}</div>
+            <div class="lunar-number">${secondaryNumber}</div>
           </div>
-          ${holiday && isCurrentLunarMonth ? `<div class="holiday-name">${holiday}</div>` : ''}
+          ${holiday && isCurrentMonth ? `<div class="holiday-name">${holiday}</div>` : ''}
         `;
 
-        if (isCurrentLunarMonth) {
+        if (isCurrentMonth) {
           dayElement.addEventListener('click', () => {
-            selectedDate = { year: currentYear, month: currentMonth, day: lunarDate.getDay() };
+            if (solarMainMode) {
+              selectedDate = { year: currentYear, month: currentMonth, day: solarJsDate.getDate(), isSolar: true };
+            } else {
+              selectedDate = { year: currentYear, month: currentMonth, day: lunarDate.getDay(), isSolar: false };
+            }
             calculateBtn.disabled = false;
             calculateBtn.style.opacity = '1';
             calculateBtn.style.cursor = 'pointer';
@@ -228,6 +273,7 @@ prevMonthBtn.addEventListener('click', () => {
   } else {
     currentMonth--;
   }
+  selectedDate = null; // Clear selection when changing month
   renderCalendar();
 });
 
@@ -238,6 +284,7 @@ nextMonthBtn.addEventListener('click', () => {
   } else {
     currentMonth++;
   }
+  selectedDate = null; // Clear selection when changing month
   renderCalendar();
 });
 
@@ -279,6 +326,17 @@ calculateBtn.addEventListener('click', () => {
     alert(errorMessage);
     console.error('Date calculation error:', e);
   }
+});
+
+// Toggle solar/lunar main mode
+solarMainCheckbox.addEventListener('change', (e) => {
+  solarMainMode = e.target.checked;
+  selectedDate = null; // Clear selection when switching modes
+  calculateBtn.disabled = true;
+  calculateBtn.style.opacity = '0.5';
+  calculateBtn.style.cursor = 'not-allowed';
+  resultDiv.innerHTML = '<div class="muted">Vui lòng chọn ngày Âm lịch và nhấn "Tính lịch IVF".</div>';
+  renderCalendar();
 });
 
 // Initialize
