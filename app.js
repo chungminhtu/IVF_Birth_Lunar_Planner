@@ -186,11 +186,15 @@ function renderCalendar() {
           if (selectedDate) {
             let isSelected = false;
             if (solarMainMode) {
-              isSelected = selectedDate.year === currentYear &&
-                          selectedDate.month === currentMonth &&
+              // In solar mode, compare with solar year and month
+              isSelected = selectedDate.isSolar &&
+                          selectedDate.year === solarJsDate.getFullYear() &&
+                          selectedDate.month === solarJsDate.getMonth() + 1 &&
                           selectedDate.day === solarJsDate.getDate();
             } else {
-              isSelected = selectedDate.year === currentYear &&
+              // In lunar mode, compare with lunar year and month
+              isSelected = !selectedDate.isSolar &&
+                          selectedDate.year === currentYear &&
                           selectedDate.month === currentMonth &&
                           selectedDate.day === lunarDate.getDay();
             }
@@ -232,8 +236,10 @@ function renderCalendar() {
         if (isCurrentMonth) {
           dayElement.addEventListener('click', () => {
             if (solarMainMode) {
-              selectedDate = { year: currentYear, month: currentMonth, day: solarJsDate.getDate(), isSolar: true };
+              // In solar mode, use solar year and month
+              selectedDate = { year: solarJsDate.getFullYear(), month: solarJsDate.getMonth() + 1, day: solarJsDate.getDate(), isSolar: true };
             } else {
+              // In lunar mode, use lunar year and month
               selectedDate = { year: currentYear, month: currentMonth, day: lunarDate.getDay(), isSolar: false };
             }
             renderCalendar();
@@ -276,7 +282,7 @@ nextMonthBtn.addEventListener('click', () => {
 // Calculate IVF schedule
 function calculateIVFSchedule() {
   if (!selectedDate) {
-    resultDiv.innerHTML = '<div class="muted">Vui lòng chọn ngày Âm lịch để xem lịch IVF.</div>';
+    resultDiv.innerHTML = '<div class="muted">Vui lòng chọn ngày từ lịch để xem lịch IVF.</div>';
     return;
   }
 
@@ -324,7 +330,7 @@ function calculateIVFSchedule() {
 solarMainCheckbox.addEventListener('change', (e) => {
   solarMainMode = e.target.checked;
   selectedDate = null; // Clear selection when switching modes
-  resultDiv.innerHTML = '<div class="muted">Vui lòng chọn ngày Âm lịch để xem lịch IVF.</div>';
+  resultDiv.innerHTML = '<div class="muted">Vui lòng chọn ngày từ lịch để xem lịch IVF.</div>';
   renderCalendar();
 });
 
