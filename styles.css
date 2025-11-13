@@ -234,6 +234,8 @@ button:focus {
 }
 
 .calendar-day.today.selected {
+  background: linear-gradient(135deg, var(--accent), #4a7bff);
+  color: white;
   border: 2px solid #fff;
 }
 

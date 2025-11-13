@@ -50,13 +50,13 @@ function endOfWeekSunday(date) {
   return startOfWeekMonday(date).add(6, 'day');
 }
 
-// Helper: Get Vietnamese holiday
-function getVietnameseHoliday(lunarDate) {
+// Helper: Get Vietnamese holiday from solar date
+function getVietnameseHoliday(solarDate) {
+  const lunarDate = solarDate.getLunar();
   const lunarKey = `${lunarDate.getMonth()}-${lunarDate.getDay()}`;
   if (vietnameseHolidays[lunarKey]) {
     return vietnameseHolidays[lunarKey];
   }
-  const solarDate = lunarDate.getSolar();
   const solarKey = `${solarDate.getMonth()}-${solarDate.getDay()}`;
   if (solarHolidays[solarKey]) {
     return solarHolidays[solarKey];
@@ -80,15 +80,16 @@ function getLastLunarDay(year, month) {
 }
 
 // Helper: Format date pair (solar + lunar)
-function formatDatePair(solarDate) {
+function formatDatePair(solarJsDate) {
   const daysOfWeek = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
-  const dayOfWeek = daysOfWeek[solarDate.getDay()];
-  const day = solarDate.getDate();
-  const month = solarDate.getMonth() + 1;
-  const year = solarDate.getFullYear();
+  const dayOfWeek = daysOfWeek[solarJsDate.getDay()];
+  const day = solarJsDate.getDate();
+  const month = solarJsDate.getMonth() + 1;
+  const year = solarJsDate.getFullYear();
   const solarStr = `${dayOfWeek}, ngày ${day} tháng ${month}, năm ${year}`;
   
-  const lunarDate = Lunar.fromDate(solarDate);
+  const solarDate = Solar.fromYmd(year, month, day);
+  const lunarDate = solarDate.getLunar();
   const lunarStr = `${dayOfWeek}, ngày ${lunarDate.getDay()} tháng ${lunarDate.getMonth()}, năm ${lunarDate.getYear()} (Âm lịch)`;
   
   return `<strong style="color: #2d3748;">${solarStr}</strong><br><small style="color: #666; font-weight: normal;">${lunarStr}</small>`;
@@ -147,9 +148,10 @@ function renderCalendar() {
     // Render calendar days
     calendarWeeks.forEach(week => {
       week.forEach(dayData => {
-        const solarDate = new Date(dayData.year, dayData.month, dayData.day);
-        const lunarDate = Lunar.fromDate(solarDate);
-        const holiday = getVietnameseHoliday(lunarDate);
+        const solarJsDate = new Date(dayData.year, dayData.month, dayData.day);
+        const solarDate = Solar.fromYmd(dayData.year, dayData.month + 1, dayData.day);
+        const lunarDate = solarDate.getLunar();
+        const holiday = getVietnameseHoliday(solarDate);
         const isCurrentLunarMonth = lunarDate.getMonth() === currentMonth && lunarDate.getYear() === currentYear;
 
         const dayElement = document.createElement('div');
@@ -173,17 +175,17 @@ function renderCalendar() {
           }
 
           const today = new Date();
-          if (solarDate.getFullYear() === today.getFullYear() &&
-              solarDate.getMonth() === today.getMonth() &&
-              solarDate.getDate() === today.getDate()) {
+          if (solarJsDate.getFullYear() === today.getFullYear() &&
+              solarJsDate.getMonth() === today.getMonth() &&
+              solarJsDate.getDate() === today.getDate()) {
             dayElement.classList.add('today');
           }
         }
 
         dayElement.innerHTML = `
           <div class="day-info">
-            <div class="day-number">${isCurrentLunarMonth ? lunarDate.getDay() : solarDate.getDate()}</div>
-            <div class="lunar-number">${solarDate.getDate()}/${solarDate.getMonth() + 1}</div>
+            <div class="day-number">${isCurrentLunarMonth ? lunarDate.getDay() : solarJsDate.getDate()}</div>
+            <div class="lunar-number">${solarJsDate.getDate()}/${solarJsDate.getMonth() + 1}</div>
           </div>
           ${holiday && isCurrentLunarMonth ? `<div class="holiday-name">${holiday}</div>` : ''}
         `;
