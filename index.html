@@ -525,30 +525,58 @@
           throw new Error('Calendar library (dayjs) not loaded');
         }
 
-        // Generate calendar for the solar month that contains the lunar month
-        // We need to find which solar month corresponds to lunar month 1 of 2026
+        // Find the first and last day of the lunar month
         const firstLunarDay = Lunar.fromYmd(currentYear, currentMonth, 1);
         const firstSolarDate = firstLunarDay.getSolar();
-        const solarYear = firstSolarDate.getYear();
-        const solarMonth = firstSolarDate.getMonth() - 1; // JavaScript months are 0-indexed
-
-        // Generate calendar month array using the CDN library
-        const calendarData = generateCalendar(solarYear, solarMonth);
+        
+        // Find the last day of the lunar month by trying days until we get an error
+        let lastLunarDay = firstLunarDay;
+        let dayCount = 1;
+        while (true) {
+          try {
+            const testDay = Lunar.fromYmd(currentYear, currentMonth, dayCount + 1);
+            lastLunarDay = testDay;
+            dayCount++;
+          } catch (e) {
+            break;
+          }
+        }
+        const lastSolarDate = lastLunarDay.getSolar();
+        
+        // Generate calendar covering the range from first to last solar date
+        const dayjs = window.dayjs;
+        // Lunar.getSolar() returns month as 1-12, so subtract 1 for JS Date
+        const startSolarJsDate = new Date(firstSolarDate.getYear(), firstSolarDate.getMonth() - 1, firstSolarDate.getDay());
+        const endSolarJsDate = new Date(lastSolarDate.getYear(), lastSolarDate.getMonth() - 1, lastSolarDate.getDay());
+        const startSolarDate = dayjs(startSolarJsDate);
+        const endSolarDate = dayjs(endSolarJsDate);
+        const calendarStart = startSolarDate.startOf('week');
+        const calendarEnd = endSolarDate.endOf('week');
         
         const weekdays = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
         const weekdaysAbbr = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+        
+        // Generate calendar weeks covering the full range
+        const calendarWeeks = [];
+        let currentWeekStart = calendarStart;
+        
+        while (currentWeekStart.isBefore(calendarEnd) || currentWeekStart.isSame(calendarEnd, 'day')) {
+          const week = [];
+          for (let i = 0; i < 7; i++) {
+            const date = currentWeekStart.add(i, 'day');
+            week.push({
+              year: date.year(),
+              month: date.month(),
+              day: date.date()
+            });
+          }
+          calendarWeeks.push(week);
+          currentWeekStart = currentWeekStart.add(7, 'day');
+        }
 
         // Render each week
-        calendarData.forEach(week => {
+        calendarWeeks.forEach(week => {
           week.forEach(dayData => {
-            if (!dayData) {
-              // Empty cell
-              const emptyElement = document.createElement('div');
-              emptyElement.className = 'calendar-day other-month';
-              calendarDays.appendChild(emptyElement);
-              return;
-            }
-
             const solarDate = new Date(dayData.year, dayData.month, dayData.day);
             const lunarDate = Lunar.fromDate(solarDate);
             const weekdayIndex = solarDate.getDay();
@@ -556,7 +584,7 @@
             const holiday = getVietnameseHoliday(lunarDate);
             
             // Check if this day is in the current lunar month
-            const isCurrentLunarMonth = dayData.isCurrentMonth && lunarDate.getMonth() === currentMonth && lunarDate.getYear() === currentYear;
+            const isCurrentLunarMonth = lunarDate.getMonth() === currentMonth && lunarDate.getYear() === currentYear;
 
             const dayElement = document.createElement('div');
             
@@ -591,8 +619,8 @@
 
             dayElement.innerHTML = `
               <div class="day-info">
-                <div class="day-number">${isCurrentLunarMonth ? lunarDate.getDay() : dayData.day}</div>
-                <div class="lunar-number">${dayData.day}/${dayData.month + 1}</div>
+                <div class="day-number">${isCurrentLunarMonth ? lunarDate.getDay() : solarDate.getDate()}</div>
+                <div class="lunar-number">${solarDate.getDate()}/${solarDate.getMonth() + 1}</div>
               </div>
               ${weekdayName ? `<div class="weekday-name">${weekdayName}</div>` : ''}
               ${holiday && isCurrentLunarMonth ? `<div class="holiday-name">${holiday}</div>` : ''}
