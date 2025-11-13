@@ -366,7 +366,38 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.7.4/lunar.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/calendar-js@1.4.4/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
+  <script>
+    // Calendar month generator using dayjs CDN library
+    window.generateCalendarMonth = function(year, month) {
+      const dayjs = window.dayjs;
+      const firstDay = dayjs(new Date(year, month, 1));
+      const lastDay = dayjs(new Date(year, month + 1, 0));
+      const startDate = firstDay.startOf('week');
+      const endDate = lastDay.endOf('week');
+      
+      const weeks = [];
+      let weekStart = startDate;
+      
+      while (weekStart.isBefore(endDate) || weekStart.isSame(endDate, 'day')) {
+        const week = [];
+        for (let i = 0; i < 7; i++) {
+          const date = weekStart.add(i, 'day');
+          const isCurrentMonth = date.month() === month && date.year() === year;
+          week.push({
+            year: date.year(),
+            month: date.month(),
+            day: date.date(),
+            isCurrentMonth: isCurrentMonth
+          });
+        }
+        weeks.push(week);
+        weekStart = weekStart.add(7, 'day');
+      }
+      
+      return weeks;
+    };
+  </script>
 
 </head>
 <body>
@@ -432,7 +463,7 @@
 
     // Calendar state
     let currentYear = 2026;
-    let currentMonth = 2; // February (lunar month) - to test the specific date
+    let currentMonth = 1; // Tháng 1 (January - lunar month)
     let selectedDate = null; // No date selected initially
 
     // Vietnamese holidays (lunar calendar dates)
@@ -485,98 +516,91 @@
       calendarDays.innerHTML = '';
       calendarTitle.textContent = `Tháng ${currentMonth}, Năm ${currentYear} (Âm lịch)`;
 
-      // Use calendar-js to generate the calendar grid
+      // Use dayjs CDN library to generate the calendar grid
       try {
-        const cal = window.calendar || calendar; // Try both global names
+        // Get calendar month generator function (uses dayjs from CDN)
+        const generateCalendar = window.generateCalendarMonth;
+        
+        if (!generateCalendar || !window.dayjs) {
+          throw new Error('Calendar library (dayjs) not loaded');
+        }
 
-        // Configure calendar-js with Vietnamese weekdays
-        cal({
-          weekdays: ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'],
-          weekdaysAbbr: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
-        });
+        // Generate calendar for the solar month that contains the lunar month
+        // We need to find which solar month corresponds to lunar month 1 of 2026
+        const firstLunarDay = Lunar.fromYmd(currentYear, currentMonth, 1);
+        const firstSolarDate = firstLunarDay.getSolar();
+        const solarYear = firstSolarDate.getYear();
+        const solarMonth = firstSolarDate.getMonth() - 1; // JavaScript months are 0-indexed
 
-        console.log('Using calendar-js for year:', currentYear, 'month:', currentMonth - 1);
+        // Generate calendar month array using the CDN library
+        const calendarData = generateCalendar(solarYear, solarMonth);
+        
+        const weekdays = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+        const weekdaysAbbr = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
-        const calendarData = cal().detailed(currentYear, currentMonth - 1, (data, calendar) => {
-          // Convert solar date to lunar for display
-          const solarDate = new Date(data.date);
-          const lunarDate = Lunar.fromDate(solarDate);
-
-          // Debug: check calendar-js weekday data
-          console.log('Calendar-js date:', data.date.toISOString().split('T')[0],
-                     'weekday index:', data.index.day,
-                     'weekday name:', calendar.weekdays[data.index.day]);
-
-          return {
-            ...data,
-            lunarDay: lunarDate.getDay(),
-            lunarMonth: lunarDate.getMonth(),
-            lunarYear: lunarDate.getYear(),
-            weekdayName: calendar.weekdays[data.index.day],
-            holiday: getVietnameseHoliday(lunarDate)
-          };
-        });
-
-        console.log('Calendar data generated:', calendarData);
-
-        // Render each week using calendar-js data
-        calendarData.calendar.forEach(week => {
+        // Render each week
+        calendarData.forEach(week => {
           week.forEach(dayData => {
-            if (!dayData) return; // Skip empty cells
+            if (!dayData) {
+              // Empty cell
+              const emptyElement = document.createElement('div');
+              emptyElement.className = 'calendar-day other-month';
+              calendarDays.appendChild(emptyElement);
+              return;
+            }
+
+            const solarDate = new Date(dayData.year, dayData.month, dayData.day);
+            const lunarDate = Lunar.fromDate(solarDate);
+            const weekdayIndex = solarDate.getDay();
+            const weekdayName = weekdays[weekdayIndex];
+            const holiday = getVietnameseHoliday(lunarDate);
+            
+            // Check if this day is in the current lunar month
+            const isCurrentLunarMonth = dayData.isCurrentMonth && lunarDate.getMonth() === currentMonth && lunarDate.getYear() === currentYear;
 
             const dayElement = document.createElement('div');
-            const isCurrentMonth = dayData.isInPrimaryMonth;
-
-            if (!isCurrentMonth) {
+            
+            if (!isCurrentLunarMonth) {
               dayElement.className = 'calendar-day other-month';
             } else {
               dayElement.className = 'calendar-day';
               dayElement.dataset.year = currentYear;
               dayElement.dataset.month = currentMonth;
-              dayElement.dataset.day = dayData.lunarDay;
+              dayElement.dataset.day = lunarDate.getDay();
 
               // Check if this is the selected date
               if (selectedDate && selectedDate.year === currentYear &&
                   selectedDate.month === currentMonth &&
-                  selectedDate.day === dayData.lunarDay) {
+                  selectedDate.day === lunarDate.getDay()) {
                 dayElement.classList.add('selected');
               }
 
               // Check if this is a holiday
-              if (dayData.holiday) {
+              if (holiday) {
                 dayElement.classList.add('holiday');
               }
 
               // Check if this is today
               const today = new Date();
-              if (dayData.date.getFullYear() === today.getFullYear() &&
-                  dayData.date.getMonth() === today.getMonth() &&
-                  dayData.date.getDate() === today.getDate()) {
+              if (solarDate.getFullYear() === today.getFullYear() &&
+                  solarDate.getMonth() === today.getMonth() &&
+                  solarDate.getDate() === today.getDate()) {
                 dayElement.classList.add('today');
               }
             }
 
             dayElement.innerHTML = `
               <div class="day-info">
-                <div class="day-number">${isCurrentMonth ? dayData.lunarDay : dayData.day}</div>
-                <div class="lunar-number">${dayData.day}/${dayData.date.getMonth() + 1}</div>
+                <div class="day-number">${isCurrentLunarMonth ? lunarDate.getDay() : dayData.day}</div>
+                <div class="lunar-number">${dayData.day}/${dayData.month + 1}</div>
               </div>
-              ${dayData.weekdayName ? `<div class="weekday-name">${dayData.weekdayName}</div>` : ''}
-              ${dayData.holiday && isCurrentMonth ? `<div class="holiday-name">${dayData.holiday}</div>` : ''}
+              ${weekdayName ? `<div class="weekday-name">${weekdayName}</div>` : ''}
+              ${holiday && isCurrentLunarMonth ? `<div class="holiday-name">${holiday}</div>` : ''}
             `;
 
-            // Debug: log the date conversion for current month days
-            if (isCurrentMonth && dayData.day === 17 && dayData.date.getMonth() === 1) { // February 17
-              console.log('FOUND FEB 17:', {
-                solar: `${dayData.day}/${dayData.date.getMonth() + 1}/${dayData.date.getFullYear()}`,
-                lunar: `${dayData.lunarDay}/${dayData.lunarMonth}/${dayData.lunarYear}`,
-                holiday: dayData.holiday
-              });
-            }
-
-            if (isCurrentMonth) {
+            if (isCurrentLunarMonth) {
               dayElement.addEventListener('click', () => {
-                selectedDate = { year: currentYear, month: currentMonth, day: dayData.lunarDay };
+                selectedDate = { year: currentYear, month: currentMonth, day: lunarDate.getDay() };
                 // Enable calculate button
                 calculateBtn.disabled = false;
                 calculateBtn.style.opacity = '1';
@@ -591,79 +615,8 @@
           });
         });
       } catch (e) {
-        console.error('Calendar-js error, falling back to manual calendar:', e);
-        // Fallback to manual calendar if calendar-js fails
-        renderManualCalendar();
-      }
-    }
-
-    function renderManualCalendar() {
-      // Fallback manual calendar implementation
-      calendarDays.innerHTML = '';
-      calendarTitle.textContent = `Tháng ${currentMonth}, Năm ${currentYear} (Âm lịch)`;
-
-      // Get the first day of the lunar month
-      const firstDay = Lunar.fromYmd(currentYear, currentMonth, 1);
-      const solarFirstDay = firstDay.getSolar();
-
-      // Get the last day of the lunar month
-      const nextMonth = currentMonth === 12 ? Lunar.fromYmd(currentYear + 1, 1, 1) : Lunar.fromYmd(currentYear, currentMonth + 1, 1);
-      const lastDay = Lunar.fromYmd(currentYear, currentMonth, nextMonth.getSolar().getJulianDay() - solarFirstDay.getJulianDay() - 1);
-
-      const totalDays = lastDay.getDay();
-      const startWeekday = solarFirstDay.getWeek();
-
-      // Simple fallback - just show current month days
-      for (let day = 1; day <= totalDays; day++) {
-        try {
-          const lunarDate = Lunar.fromYmd(currentYear, currentMonth, day);
-          const solarDate = lunarDate.getSolar();
-          const holiday = getVietnameseHoliday(lunarDate);
-
-          const dayElement = document.createElement('div');
-          dayElement.className = 'calendar-day';
-          dayElement.dataset.year = currentYear;
-          dayElement.dataset.month = currentMonth;
-          dayElement.dataset.day = day;
-
-          if (selectedDate && selectedDate.year === currentYear &&
-              selectedDate.month === currentMonth &&
-              selectedDate.day === day) {
-            dayElement.classList.add('selected');
-          }
-
-          if (holiday) {
-            dayElement.classList.add('holiday');
-          }
-
-          const today = new Date();
-          if (solarDate.getYear() === today.getFullYear() &&
-              solarDate.getMonth() === today.getMonth() + 1 &&
-              solarDate.getDay() === today.getDate()) {
-            dayElement.classList.add('today');
-          }
-
-          dayElement.innerHTML = `
-            <div class="day-info">
-              <div class="day-number">${day}</div>
-              <div class="lunar-number">${solarDate.getDay()}/${solarDate.getMonth()}</div>
-            </div>
-            ${holiday ? `<div class="holiday-name">${holiday}</div>` : ''}
-          `;
-
-          dayElement.addEventListener('click', () => {
-            selectedDate = { year: currentYear, month: currentMonth, day: day };
-            calculateBtn.disabled = false;
-            calculateBtn.style.opacity = '1';
-            calculateBtn.style.cursor = 'pointer';
-            resultDiv.innerHTML = '<div class="muted">Đã chọn ngày. Nhấn "Tính lịch IVF" để xem kết quả.</div>';
-            renderCalendar();
-          });
-
-          calendarDays.appendChild(dayElement);
-        } catch (e) {
-          console.warn(`Skipping invalid lunar date: ${currentYear}-${currentMonth}-${day}`, e);
-        }
+        console.error('Calendar library error:', e);
+        calendarDays.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--muted);">Lỗi khi tải thư viện lịch. Vui lòng tải lại trang.</div>';
       }
     }
 
