@@ -246,6 +246,14 @@ button:focus {
   border: 1px solid rgba(91, 123, 255, 0.05);
 }
 
+.calendar-day.other-month.weekend-saturday {
+  background: rgba(232, 244, 248, 0.6);
+}
+
+.calendar-day.other-month.weekend-sunday {
+  background: rgba(254, 240, 245, 0.6);
+}
+
 .calendar-day.other-month:hover {
   background: rgba(91, 123, 255, 0.03);
   transform: none;

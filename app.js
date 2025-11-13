@@ -157,6 +157,13 @@ function renderCalendar() {
         const dayElement = document.createElement('div');
         const weekday = solarJsDate.getDay(); // 0 = Sunday, 6 = Saturday
         
+        // Add weekend classes for all days
+        if (weekday === 6) {
+          dayElement.classList.add('weekend-saturday');
+        } else if (weekday === 0) {
+          dayElement.classList.add('weekend-sunday');
+        }
+        
         if (!isCurrentLunarMonth) {
           dayElement.className = 'calendar-day other-month';
         } else {
@@ -164,13 +171,6 @@ function renderCalendar() {
           dayElement.dataset.year = currentYear;
           dayElement.dataset.month = currentMonth;
           dayElement.dataset.day = lunarDate.getDay();
-
-          // Add weekend classes
-          if (weekday === 6) {
-            dayElement.classList.add('weekend-saturday');
-          } else if (weekday === 0) {
-            dayElement.classList.add('weekend-sunday');
-          }
 
           if (selectedDate && selectedDate.year === currentYear &&
               selectedDate.month === currentMonth &&
